@@ -1,0 +1,50 @@
+/* Единственный источник дизайн-токенов. Цвета, шрифты, размеры, радиусы, длительности — только здесь. */
+
+/* Сбрасываем дефолтные палитру, тени и скругления Tailwind, чтобы нельзя было взять "левое" значение. */
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --radius-*: initial;
+
+  --color-paper: #f3efe6;
+  --color-paper-deep: #e9e3d6;
+  --color-ink: #1c1f1a;
+  --color-ink-muted: #5b5f57;
+  --color-spruce: #2f4a3a;
+  --color-rust: #b5552b; /* только крупный декор */
+  --color-rust-text: #9e4522;
+  --color-line: #d8d1c2;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --radius-none: 0;
+  --radius-btn: 2px;
+
+  --text-h1: clamp(2.75rem, 1.2rem + 6.4vw, 6.5rem); /* 44 → 104px */
+  --text-h1--line-height: 1;
+  --text-h2: clamp(2rem, 1.3rem + 2.8vw, 3.5rem); /* 32 → 56px */
+  --text-h2--line-height: 1.1;
+  --text-body: 1.0625rem; /* 17px */
+  --text-body--line-height: 1.6;
+  --text-body-lg: 1.125rem; /* 18px */
+  --text-body-lg--line-height: 1.6;
+  --text-label: 0.75rem; /* 12px */
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.08em;
+
+  --container-page: 1360px;
+  --container-measure: 65ch;
+
+  --duration-fast: 160ms;
+  --duration-base: 240ms;
+  --ease-quiet: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Шрифты: переменные --font-literata/onest/plex-mono задаёт next/font на <html>. */
+@theme inline {
+  --font-serif: var(--font-literata), Georgia, serif;
+  --font-sans: var(--font-onest), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
