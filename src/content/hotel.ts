@@ -34,6 +34,8 @@ export const hotel = {
     telegram: 'ulaslovycha',
     viber: '+380000000000',
   },
+  // Фото хиро 4:5. Положить файл в public/photos/ и указать путь, напр. '/photos/hero.avif'.
+  heroPhoto: null as string | null,
   checkIn: '14:00',
   checkOut: '12:00',
   amenities: [...amenityIds] satisfies AmenityId[],
