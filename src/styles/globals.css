@@ -6,9 +6,7 @@
     background-color: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
-  }
-  html:has(.menu-dialog[open]) {
-    overflow: hidden;
+    scroll-behavior: smooth;
   }
   body {
     font-size: var(--text-body);
@@ -16,10 +14,13 @@
     -webkit-font-smoothing: antialiased;
   }
   :focus-visible {
-    outline: 1.5px solid var(--color-spruce);
+    outline: 2px solid var(--color-accent);
     outline-offset: 3px;
   }
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
     *,
     *::before,
     *::after,
@@ -32,94 +33,128 @@
 }
 
 @layer components {
-  /* Меню-оглавление: нативный <dialog>, мягкое появление 200ms слева. */
-  .menu-dialog {
-    position: fixed;
-    inset: 0 auto 0 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-right: 1px solid var(--color-line);
-    width: 100%;
-    max-width: 100%;
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow-y: auto;
-    background: var(--color-paper);
-    color: var(--color-ink);
+  /* Каскадное появление: transform + opacity, задержка через --d. */
+  .enter {
     opacity: 0;
-    transform: translateX(-16px);
-    transition:
-      opacity var(--transition-duration-menu) var(--ease-quiet),
-      transform var(--transition-duration-menu) var(--ease-quiet),
-      overlay var(--transition-duration-menu) allow-discrete,
-      display var(--transition-duration-menu) allow-discrete;
+    transform: translate3d(0, 14px, 0);
+    animation: enter var(--transition-duration-menu) var(--ease-quiet) both;
+    animation-delay: var(--d, 0ms);
   }
-  .menu-dialog[open] {
-    opacity: 1;
-    transform: none;
-  }
-  @starting-style {
-    .menu-dialog[open] {
-      opacity: 0;
-      transform: translateX(-16px);
+  @keyframes enter {
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
     }
   }
-  .menu-dialog::backdrop {
-    background: transparent;
-    transition:
-      background-color var(--transition-duration-menu) var(--ease-quiet),
-      overlay var(--transition-duration-menu) allow-discrete,
-      display var(--transition-duration-menu) allow-discrete;
-  }
-  .menu-dialog[open]::backdrop {
-    background: var(--color-scrim);
-  }
-  @starting-style {
-    .menu-dialog[open]::backdrop {
-      background: transparent;
-    }
-  }
-  @media (min-width: 48rem) {
-    .menu-dialog {
-      width: min(46rem, 100%);
+  @media (prefers-reduced-motion: reduce) {
+    .enter {
+      opacity: 1;
+      transform: none;
+      animation: none;
     }
   }
 
-  /* Мобильная панель связи: выезжает снизу после хиро. */
-  .contact-bar {
-    transform: translateY(100%);
+  /* Иконка-бургер: две горизонтальные полоски → крестик через чистый transform. */
+  .burger-icon {
+    position: relative;
+    display: inline-block;
+    width: 18px;
+    height: 12px;
+  }
+  .burger-line {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 18px;
+    height: 1.5px;
+    margin-top: -0.75px;
+    background: currentColor;
+    border-radius: 1px;
+    transform: translateY(var(--burger-y, 0));
+    will-change: transform;
     transition: transform var(--transition-duration-menu) var(--ease-quiet);
   }
-  .contact-bar[data-visible='true'] {
-    transform: none;
+  .burger-line-top {
+    --burger-y: -4px;
+  }
+  .burger-line-bottom {
+    --burger-y: 4px;
+  }
+  .burger[data-open='true'] .burger-line-top {
+    transform: translateY(0) rotate(45deg);
+  }
+  .burger[data-open='true'] .burger-line-bottom {
+    transform: translateY(0) rotate(-45deg);
   }
 
-  /* Линия хребта прорисовывается слева направо. */
-  .ridge-draw {
-    clip-path: inset(0 100% 0 0);
-    animation: ridge-draw 1600ms var(--ease-quiet) 240ms forwards;
+  /* Полноэкранный оверлей мобильного меню (без native <dialog>): лежит ПОД шапкой по z-index. */
+  .mobile-menu-overlay {
+    background: var(--color-paper);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-duration-menu) var(--ease-quiet);
   }
-  @keyframes ridge-draw {
+  .mobile-menu-overlay[data-open='true'] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Плавное появление фото: пока браузер декодирует .avif — opacity 0 + лёгкий scale,
+     после загрузки картинка возвращается в исходное состояние. */
+  .photo-fade {
+    opacity: 0;
+    transform: scale(1.015);
+    animation: photo-in 700ms var(--ease-quiet) 60ms forwards;
+    will-change: opacity, transform;
+  }
+  @keyframes photo-in {
     to {
-      clip-path: inset(0 0 0 0);
+      opacity: 1;
+      transform: scale(1);
     }
   }
 
-  /* Появление секций при скролле — только CSS, только где поддерживается. */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .reveal {
-        animation: reveal linear both;
-        animation-timeline: view();
-        animation-range: entry 0% entry 35%;
+  /* Карусель отзывов: карточка, которая уезжает за край, наклоняется, уменьшается и гаснет.
+     Чистый scroll-driven CSS (transform + opacity на компоновщике): позиция карточки в прокручиваемом
+     треке сама ведёт анимацию, JS в кадре не участвует. Без поддержки — карточки просто стоят ровно. */
+  @media (min-width: 1024px) {
+    @supports (animation-timeline: view()) {
+      .fly-card {
+        animation: fly-card linear both;
+        animation-timeline: view(inline);
       }
     }
   }
-  @keyframes reveal {
+  @keyframes fly-card {
+    0% {
+      opacity: 0.2;
+      transform: translate3d(2.5rem, 0, 0) scale(0.9) rotate(3deg);
+    }
+    18%,
+    82% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0.2;
+      transform: translate3d(-2.5rem, 0, 0) scale(0.9) rotate(-3deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fly-card {
+      animation: none;
+    }
+  }
+
+  /* Карточка-ответ в FAQ-«маршруте»: при смене остановки ремаунт через key — анимация стартует заново.
+     Только transform + opacity, идёт на компоновщике. */
+  .faq-answer-in {
+    animation: faq-answer 420ms var(--ease-quiet) both;
+  }
+  @keyframes faq-answer {
     from {
       opacity: 0;
-      transform: translateY(24px);
+      transform: translate3d(-14px, 0, 0) scale(0.985);
     }
     to {
       opacity: 1;
@@ -127,10 +162,204 @@
     }
   }
 
+  /* Пульсирующее кольцо у активного узла маршрута — подсказка «это точка остановки». */
+  .trail-pulse {
+    animation: trail-pulse 2.6s ease-out infinite;
+  }
+  @keyframes trail-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.65;
+    }
+    70% {
+      transform: scale(1.65);
+      opacity: 0;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .ridge-draw {
+    .faq-answer-in,
+    .trail-pulse {
       animation: none;
-      clip-path: none;
+    }
+  }
+
+  /* Колода отзывов (телефон и планшет): карточки лежат стопкой в одной ячейке сетки, положение каждой
+     задают CSS-переменные из React (глубина в стопке) и из жеста (смещение, поворот). Только transform + opacity.
+     Верхняя карточка улетает «веером» от нижнего края; на десктопе (lg+) переменные игнорируются — там лента. */
+  @media (max-width: 1023px) {
+    .deck-card {
+      grid-area: 1 / 1;
+      transform-origin: 50% 110%;
+      transform: translate3d(var(--dx, 0px), var(--dy, 0px), 0) rotate(var(--dr, 0deg))
+        scale(var(--ds, 1));
+      opacity: var(--do, 1);
+      z-index: var(--dz, 0);
+      transition:
+        transform 480ms var(--ease-quiet),
+        opacity 360ms var(--ease-quiet);
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .deck-card[data-dragging='true'] {
+      transition: none;
+      cursor: grabbing;
+    }
+  }
+
+  /* Доска с наклейками: точечная сетка из токена ink. Наклейку двигает JS через --tx/--ty (без ререндеров),
+     а «отлепление» — transform + filter на внутреннем теле: поднимается, наклоняется и отбрасывает тень. */
+  .sticker-board {
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--color-ink) 14%, transparent) 1px,
+      transparent 1.5px
+    );
+    background-size: 20px 20px;
+  }
+  .sticker {
+    transform: translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+  }
+  .sticker[data-lifted='true'] {
+    cursor: grabbing;
+  }
+  .sticker-body {
+    transform: rotate(var(--rot, 0deg));
+    filter: drop-shadow(0 3px 4px color-mix(in srgb, var(--color-ink) 14%, transparent));
+    transition:
+      transform 260ms var(--ease-quiet),
+      filter 260ms var(--ease-quiet);
+  }
+  .sticker:hover .sticker-body {
+    transform: rotate(var(--rot, 0deg)) translateY(-3px);
+  }
+  .sticker[data-lifted='true'] .sticker-body {
+    transform: rotate(calc(var(--rot, 0deg) + 3deg)) scale(1.1);
+    filter: drop-shadow(0 16px 14px color-mix(in srgb, var(--color-ink) 24%, transparent));
+    animation: none;
+  }
+  /* Когда доска попала в экран, наклейки разок покачиваются — подсказка, что их можно схватить. */
+  .sticker-board[data-in='true'] .sticker-body {
+    animation: sticker-wiggle 800ms var(--ease-quiet) var(--d, 0ms);
+  }
+  @keyframes sticker-wiggle {
+    0%,
+    100% {
+      transform: rotate(var(--rot, 0deg));
+    }
+    30% {
+      transform: rotate(calc(var(--rot, 0deg) + 6deg)) translateY(-5px);
+    }
+    65% {
+      transform: rotate(calc(var(--rot, 0deg) - 3deg));
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sticker-board[data-in='true'] .sticker-body {
+      animation: none;
+    }
+  }
+
+  /* Прелоадер: светлый занавес со знаком бренда и тонким хребтом. Появляется, ждёт сигнал готовности,
+     затем уезжает вверх и отключает клики. Чистый CSS, transform + opacity, уважает reduced-motion. */
+  .preloader {
+    animation: preloader-in 240ms var(--ease-quiet) both;
+  }
+  .preloader[data-leaving='true'] {
+    animation: preloader-out 520ms var(--ease-quiet) forwards;
+  }
+  @keyframes preloader-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes preloader-out {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      visibility: visible;
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(0, -12px, 0);
+      visibility: hidden;
+    }
+  }
+  .preloader-word {
+    animation: preloader-word 520ms var(--ease-quiet) both;
+  }
+  @keyframes preloader-word {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+    }
+  }
+  .preloader-ridge {
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+    animation: preloader-ridge 700ms var(--ease-quiet) 180ms forwards;
+  }
+  @keyframes preloader-ridge {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .preloader {
+      display: none;
+    }
+  }
+
+  /* Тёмные поверхности: акцент #2C4C3B на графите не виден, поэтому кольцо фокуса — белое. */
+  .on-dark :focus-visible,
+  .on-dark:focus-visible {
+    outline-color: var(--color-surface);
+  }
+
+  /* Трек галереи: пролистывание нативным scroll-snap, полосу прокрутки скрываем.
+     Инерцию и снэп считает компоновщик браузера — на телефоне это ровные 60 FPS без JS в кадре. */
+  .snap-track {
+    scrollbar-width: none;
+  }
+  .snap-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Лайтбокс: фон проявляется только по opacity (без transform, чтобы fixed-позиционирование не ломалось). */
+  .lightbox {
+    animation: lightbox-in 220ms var(--ease-quiet) both;
+  }
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu-overlay,
+    .burger-line {
+      transition: none;
+    }
+    .snap-track {
+      scroll-behavior: auto;
+    }
+    .lightbox {
+      animation: none;
+    }
+    .photo-fade {
+      animation: none;
+      opacity: 1;
+      transform: none;
     }
   }
 }

@@ -1,12 +1,14 @@
-import { IBM_Plex_Mono, Literata, Onest } from 'next/font/google';
+import { Manrope, Onest } from 'next/font/google';
 
-const literata = Literata({
+// Заголовки и словесный знак.
+const manrope = Manrope({
   subsets: ['latin', 'cyrillic'],
-  weight: ['400', '500', '600'],
+  weight: ['500', '600', '700'],
   display: 'swap',
-  variable: '--font-literata',
+  variable: '--font-manrope',
 });
 
+// Основной текст и цифры.
 const onest = Onest({
   subsets: ['latin', 'cyrillic'],
   weight: ['400', '500', '600'],
@@ -14,11 +16,4 @@ const onest = Onest({
   variable: '--font-onest',
 });
 
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin', 'cyrillic'],
-  weight: ['400', '500'],
-  display: 'swap',
-  variable: '--font-plex-mono',
-});
-
-export const fontClassName = `${literata.variable} ${onest.variable} ${plexMono.variable}`;
+export const fontClassName = `${manrope.variable} ${onest.variable}`;
