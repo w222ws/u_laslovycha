@@ -13,12 +13,10 @@ export const intlLocale: Record<Locale, string> = { uk: 'uk-UA', ru: 'ru-UA' };
 
 export const localePath: Record<Locale, string> = { uk: '/', ru: '/ru/' };
 
-/** Подставляет {name} в шаблон. */
-export function fmt(template: string, vars: Record<string, string | number>): string {
-  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(vars[key] ?? `{${key}}`));
-}
-
-export const locales = ['uk', 'ru'] as const satisfies readonly Locale[];
-
 /** Код языка в переключателе. */
 export const localeCode: Record<Locale, string> = { uk: 'UA', ru: 'RU' };
+
+/** Противоположный язык — для компактного переключателя одним кликом. */
+export const otherLocale: Record<Locale, Locale> = { uk: 'ru', ru: 'uk' };
+
+export const locales = ['uk', 'ru'] as const satisfies readonly Locale[];

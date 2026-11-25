@@ -1,34 +1,35 @@
-const ratioClass = {
-  '4:5': 'aspect-[4/5]',
-  '3:2': 'aspect-[3/2]',
-  '1:1': 'aspect-square',
-} as const;
-
 type Props = {
-  src: string | null | undefined;
+  /** Путь к .avif в public/photos/. */
+  src: string;
+  /** Файл уже лежит в public/photos/ — иначе показываем аккуратную заглушку. */
+  available: boolean;
   alt: string;
-  ratio: keyof typeof ratioClass;
-  /** Подпись заглушки, напр. «ФОТО 01». */
-  placeholder: string;
+  /** Подпись заглушки. `null` — чистая плашка paper-deep без текста. */
+  pending?: string | null;
   eager?: boolean;
 };
 
-/** Фото AVIF из public/photos/ или заглушка paper-deep тех же пропорций. */
-export function Photo({ src, alt, ratio, placeholder, eager = false }: Props) {
-  if (src) {
+/**
+ * Слот фото: сам снимок или ровная заглушка того же размера.
+ * Пропорции и форму задаёт родитель. Снимок появляется с плавным CSS-fade через класс `photo-fade`
+ * (opacity + transform, 60 FPS, с учётом prefers-reduced-motion).
+ */
+export function Photo({ src, available, alt, pending = null, eager = false }: Props) {
+  if (available) {
     return (
       <img
         src={src}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
-        className={`${ratioClass[ratio]} block w-full object-cover`}
+        fetchPriority={eager ? 'high' : 'auto'}
+        className="photo-fade block size-full object-cover object-center"
       />
     );
   }
   return (
-    <div role="img" aria-label={alt} className={`${ratioClass[ratio]} flex w-full items-center justify-center bg-paper-deep`}>
-      <span className="font-mono text-label uppercase text-ink-muted">{placeholder}</span>
+    <div role="img" aria-label={alt} className="flex size-full items-center justify-center bg-paper-deep">
+      {pending && <span className="text-label uppercase text-ink-muted">{pending}</span>}
     </div>
   );
 }
