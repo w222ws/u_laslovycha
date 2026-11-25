@@ -4,8 +4,10 @@
 export type Locale = 'uk' | 'ru';
 export type LocalizedText = Record<Locale, string>;
 
-const PHONE_E164 = '+380680886599';
-const PHONE_DISPLAY = '+380 68 088 65 99';
+export const SITE_URL = 'https://ulaslovycha.com';
+
+const PHONE_E164 = '+380679706904';
+const PHONE_DISPLAY = '+380 67 970 69 04';
 // WhatsApp/Telegram работают с номером без «+».
 const PHONE_DIGITS = PHONE_E164.replace(/\D/g, '');
 

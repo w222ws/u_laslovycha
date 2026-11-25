@@ -1,4 +1,4 @@
-import { hotel, type Locale } from '@/content/hotel';
+import { hotel, SITE_URL, type Locale } from '@/content/hotel';
 import { getMessages } from '@/lib/i18n';
 import { Contacts } from './Contacts';
 import { Faq } from './Faq';
@@ -16,6 +16,7 @@ export function Landing({ locale }: { locale: Locale }) {
     '@type': 'LodgingBusiness',
     name: hotel.name,
     description: meta.description,
+    url: locale === 'uk' ? `${SITE_URL}/` : `${SITE_URL}/ru/`,
     telephone: hotel.contacts.phone,
     inLanguage: locale,
     address: {

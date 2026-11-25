@@ -5,8 +5,8 @@
 import type { Locale, LocalizedText } from './hotel';
 
 /** TODO: заменить placeholder-цены на реальные («от», за номер за сутки). */
-export const PRICE_FROM_DOUBLE = 1200;
-export const PRICE_FROM_QUAD = 2000;
+export const PRICE_FROM_DOUBLE = 600;
+export const PRICE_FROM_QUAD = 800;
 
 type Four<T> = readonly [T, T, T, T];
 
