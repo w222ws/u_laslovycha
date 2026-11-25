@@ -14,7 +14,7 @@ import { Photo } from './Photo';
  * сигнала `hero:ready` от прелоадера.
  *
  * Телефон (сверху вниз): заголовок и подзаголовок → фото (забирает свободную высоту) → плюсы → кнопки.
- * Десктоп: слева текст и плюсы, справа фото, а кнопки — прямо под ним.
+ * Десктоп: слева текст, плюсы и кнопки, справа только фото на всю высоту.
  */
 export function Hero({ locale }: { locale: Locale }) {
   const m = getMessages(locale);
@@ -27,26 +27,26 @@ export function Hero({ locale }: { locale: Locale }) {
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="relative isolate mx-auto flex min-h-dvh max-w-page flex-col px-5 pt-18 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-8 md:pt-24 md:pb-8 lg:max-h-240"
+      className="relative isolate mx-auto flex min-h-svh max-w-page flex-col px-5 pt-18 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-8 md:pt-24 md:pb-8 lg:max-h-240"
     >
       <MotionRoot>
         <HeroTrail />
-        <div className="flex min-h-0 flex-1 flex-col gap-5 lg:grid lg:grid-cols-12 lg:grid-rows-[1fr_auto] lg:gap-x-12 lg:gap-y-6">
-          <div className="order-1 lg:col-span-6 lg:row-start-1 lg:self-center">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 lg:grid lg:grid-cols-12 lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-12 lg:gap-y-7">
+          <div className="order-1 lg:col-span-6 lg:col-start-1 lg:row-start-2">
             <HeroText title={m.hero.title} subtitle={m.hero.subtitle} />
           </div>
 
-          <div className="relative order-2 min-h-64 flex-1 lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:min-h-0">
+          <div className="relative order-2 min-h-64 flex-1 lg:col-span-6 lg:col-start-7 lg:row-span-5 lg:row-start-1 lg:min-h-0">
             <HeroPhoto className="absolute inset-0">
               <Photo src={src} available={available} alt={m.hero.photoAlt} pending={null} eager />
             </HeroPhoto>
           </div>
 
-          <div className="order-3 lg:col-span-6 lg:col-start-1 lg:row-start-2 lg:self-end">
+          <div className="order-3 lg:col-span-6 lg:col-start-1 lg:row-start-3">
             <HeroFacts facts={m.hero.facts} />
           </div>
 
-          <div className="order-4 lg:col-span-6 lg:col-start-7 lg:row-start-2 lg:self-end">
+          <div className="order-4 lg:col-span-6 lg:col-start-1 lg:row-start-4">
             <HeroActions
               primary={{ label: m.hero.primaryCta, href: '#contacts' }}
               secondary={{ label: m.hero.secondaryCta, href: '#rooms' }}

@@ -52,6 +52,44 @@ function deckVars(depth: number, exit: number): CSSProperties {
   return vars('0px', '28px', '0deg', '0.9', '0', '47');
 }
 
+/** Числовые параметры слоёв колоды: нужны, чтобы плавно подтягивать нижние карточки следом за пальцем. */
+const STACK = [
+  { dy: 0, dr: 0, ds: 1, op: 1 },
+  { dy: 14, dr: 2, ds: 0.95, op: 1 },
+  { dy: 28, dr: -2, ds: 0.9, op: 0.7 },
+  { dy: 28, dr: 0, ds: 0.9, op: 0 },
+];
+const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
+
+/** Во время жеста подтягивает карточки стопки к следующему слою (p: 0 — на месте, 1 — заняла место выше). */
+function pullStack(items: HTMLElement[], from: number, p: number) {
+  for (let k = 1; k <= 2; k += 1) {
+    const el = items[from + k];
+    if (!el) continue;
+    const a = STACK[Math.min(k, 3)]!;
+    const b = STACK[k - 1]!;
+    el.dataset.following = 'true';
+    el.style.setProperty('--dy', `${lerp(a.dy, b.dy, p)}px`);
+    el.style.setProperty('--dr', `${lerp(a.dr, b.dr, p)}deg`);
+    el.style.setProperty('--ds', String(lerp(a.ds, b.ds, p)));
+    el.style.setProperty('--do', String(lerp(a.op, b.op, p)));
+  }
+}
+
+/** Вернуть карточки стопки на их слои (откат жеста). */
+function resetStack(items: HTMLElement[], from: number) {
+  for (let k = 1; k <= 2; k += 1) {
+    const el = items[from + k];
+    if (!el) continue;
+    const a = STACK[k]!;
+    delete el.dataset.following;
+    el.style.setProperty('--dy', `${a.dy}px`);
+    el.style.setProperty('--dr', `${a.dr}deg`);
+    el.style.setProperty('--ds', String(a.ds));
+    el.style.setProperty('--do', String(a.op));
+  }
+}
+
 /**
  * Лента отзывов.
  *   Телефон и планшет: «колода» — одна карточка на экране, остальные стопкой под ней. Карточку можно
@@ -147,8 +185,13 @@ export function ReviewsCarousel({ reviews, labels, mapUrl }: Props) {
 
   /* ── Жест колоды: тянем верхнюю карточку, на отпускании либо улетает, либо возвращается ── */
 
-  const restCard = (el: HTMLElement) => {
+  const items = () => Array.from(trackRef.current?.children ?? []) as HTMLElement[];
+
+  const restCard = (el: HTMLElement, index: number) => {
     delete el.dataset.dragging;
+    // Откат с лёгкой «пружинкой» (overshoot), а не сухой возврат.
+    el.dataset.returning = 'true';
+    resetStack(items(), index);
     el.style.setProperty('--dx', '0px');
     el.style.setProperty('--dy', '0px');
     el.style.setProperty('--dr', '0deg');
@@ -169,6 +212,7 @@ export function ReviewsCarousel({ reviews, labels, mapUrl }: Props) {
       velocity: 0,
       moved: false,
     };
+    delete e.currentTarget.dataset.returning;
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
@@ -186,9 +230,13 @@ export function ReviewsCarousel({ reviews, labels, mapUrl }: Props) {
     if (dt > 0) d.velocity = (e.clientX - d.lastX) / dt;
     d.lastX = e.clientX;
     d.lastT = e.timeStamp;
-    d.el.style.setProperty('--dx', `${dx}px`);
+    // Последняя карточка не улетает: тянется с сопротивлением, как резинка.
+    const lastCard = current >= total - 1;
+    const x = lastCard ? dx * 0.25 : dx;
+    d.el.style.setProperty('--dx', `${x}px`);
     d.el.style.setProperty('--dy', `${dy * 0.2}px`);
-    d.el.style.setProperty('--dr', `${clamp(dx / 16, -18, 18)}deg`);
+    d.el.style.setProperty('--dr', `${clamp(x / 16, -18, 18)}deg`);
+    if (!lastCard) pullStack(items(), current, clamp(Math.abs(dx) / 140, 0, 1));
   };
 
   const onDeckUp = (e: PointerEvent<HTMLLIElement>, index: number) => {
@@ -200,10 +248,11 @@ export function ReviewsCarousel({ reviews, labels, mapUrl }: Props) {
     const flick = Math.abs(d.velocity) > 0.5 && Math.abs(dx) > 30;
     if ((Math.abs(dx) > 90 || flick) && index < total - 1) {
       delete d.el.dataset.dragging;
+      for (const el of items()) delete el.dataset.following;
       exitDirs.current[index] = (flick ? d.velocity : dx) < 0 ? -1 : 1;
       setCurrent(index + 1);
     } else {
-      restCard(d.el);
+      restCard(d.el, index);
     }
   };
 
@@ -211,7 +260,7 @@ export function ReviewsCarousel({ reviews, labels, mapUrl }: Props) {
     const d = dragRef.current;
     if (!d || d.id !== e.pointerId) return;
     dragRef.current = null;
-    if (d.moved) restCard(d.el);
+    if (d.moved) restCard(d.el, current);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {

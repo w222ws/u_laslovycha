@@ -38,7 +38,6 @@ export function RoomPanel({ type, labels }: Props) {
         <div className="relative">
           {isRoom && type.priceFrom ? (
             <p className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-small text-surface/70">{labels.from}</span>
               <span className="font-display text-price font-bold">{type.priceFrom}</span>
               <span className="text-small text-surface/80">{labels.priceUnit}</span>
             </p>

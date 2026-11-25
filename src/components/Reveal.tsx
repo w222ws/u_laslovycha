@@ -7,13 +7,13 @@ import { EASE_QUIET } from '@/lib/heroTiming';
 type From = 'up' | 'left' | 'right';
 
 const OFFSET: Record<From, { x: number; y: number }> = {
-  up: { x: 0, y: 26 },
-  left: { x: -28, y: 10 },
-  right: { x: 28, y: 10 },
+  up: { x: 0, y: 18 },
+  left: { x: -18, y: 6 },
+  right: { x: 18, y: 6 },
 };
 
 /**
- * Появление блока при первом попадании в экран: opacity + сдвиг (снизу или сбоку) + едва заметный scale, один раз.
+ * Появление блока при первом попадании в экран: opacity + короткий сдвиг (снизу или сбоку), один раз.
  * Без состояния React (никаких лишних рендеров): whileInView из motion, только transform/opacity.
  * Нужен MotionRoot выше по дереву. Весь контент лежит в DOM; без JS показывает noscript-страховка в layout.
  */
@@ -32,10 +32,10 @@ export function Reveal({
   return (
     <m.div
       className={className}
-      initial={{ opacity: 0, x: o.x, y: o.y, scale: 0.985 }}
-      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: '0px 0px -10% 0px' }}
-      transition={{ duration: 0.8, delay, ease: EASE_QUIET }}
+      initial={{ opacity: 0, x: o.x, y: o.y }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ once: true, margin: '0px 0px -4% 0px' }}
+      transition={{ duration: 0.5, delay: delay * 0.6, ease: EASE_QUIET }}
     >
       {children}
     </m.div>

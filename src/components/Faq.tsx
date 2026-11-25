@@ -8,7 +8,7 @@ import { Reveal } from './Reveal';
 import { RevealTitle } from './RevealTitle';
 
 const pill =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-surface/25 bg-surface/10 px-4 text-small font-semibold text-surface transition-colors duration-hover hover:border-surface hover:bg-surface hover:text-accent';
+  'inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-surface/25 bg-surface/10 px-4 md:min-h-11 text-small font-semibold text-surface transition-colors duration-hover hover:border-surface hover:bg-surface hover:text-accent';
 
 /**
  * «Часті питання» как маршрут знакомства: 5 остановок с крупными номерами 01–05 и пунктирной тропой
@@ -20,8 +20,8 @@ export function Faq({ locale }: { locale: Locale }) {
   const labels = m.faq;
   const money = new Intl.NumberFormat(intlLocale[locale]);
   const byId = new Map(getContactChannels(locale).map((channel) => [channel.id, channel]));
-  // Порядок для сетки в 2 колонки (заполняется по столбцам): [телефон, Viber] | [WhatsApp, Telegram].
-  const messengers = (['viber', 'whatsapp', 'telegram'] as const).flatMap((id) => {
+  // Телефон — кнопкой на всю ширину, мессенджеры под ним в ряд (на телефоне только иконки): Viber, Telegram, WhatsApp.
+  const messengers = (['viber', 'telegram', 'whatsapp'] as const).flatMap((id) => {
     const channel = byId.get(id);
     return channel ? [channel] : [];
   });
@@ -84,10 +84,10 @@ export function Faq({ locale }: { locale: Locale }) {
             </p>
             <p className="mt-1 max-w-measure text-small text-surface/70">{labels.stillAnswer}</p>
           </div>
-          <div className="grid grid-flow-col grid-cols-2 grid-rows-2 gap-2 md:flex md:flex-wrap">
+          <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap">
             <a
               href={contactLinks.call}
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-surface px-5 text-small font-semibold text-accent transition-colors duration-hover hover:bg-accent-soft"
+              className="col-span-3 inline-flex min-h-12 items-center justify-center rounded-full bg-surface px-5 text-small font-semibold text-accent transition-colors duration-hover hover:bg-accent-soft md:min-h-11"
             >
               {hotel.contacts.phoneDisplay}
             </a>
@@ -96,10 +96,11 @@ export function Faq({ locale }: { locale: Locale }) {
                 key={id}
                 href={href}
                 {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                aria-label={label}
                 className={pill}
               >
-                <Icon aria-hidden size={14} />
-                {label}
+                <Icon aria-hidden size={18} />
+                <span className="sr-only md:not-sr-only">{label}</span>
               </a>
             ))}
           </div>
