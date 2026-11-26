@@ -329,6 +329,14 @@
     outline-color: var(--color-surface);
   }
 
+  /* Лента отзывов на десктопе: родную полосу прокрутки скрываем — прогресс показывает тонкая линия под лентой. */
+  .snap-track {
+    scrollbar-width: none;
+  }
+  .snap-track::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Лайтбокс: фон проявляется только по opacity (без transform, чтобы fixed-позиционирование не ломалось). */
   .lightbox {
     animation: lightbox-in 220ms var(--ease-quiet) both;
