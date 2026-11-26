@@ -1,6 +1,10 @@
+import type { Viewport } from 'next';
 import '@/styles/globals.css';
 import { Preloader } from '@/components/Preloader';
 import { fontClassName } from '@/lib/fonts';
+
+/** Цвет адресной строки мобильного браузера — фон страницы (paper). */
+export const viewport: Viewport = { themeColor: '#F7F7F5' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
