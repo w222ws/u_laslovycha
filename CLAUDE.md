@@ -8,7 +8,7 @@
 - Компоненты серверные по умолчанию. `'use client'` только в точечных интерактивных «островах» (мобильное бургер-меню, отслеживание скролла шапки, просмотр фото при необходимости).
 - Анимации: только чистый CSS (`transform` и `opacity`, 60 FPS, с поддержкой `@media (prefers-reduced-motion: reduce)`), без тяжёлых JS-библиотек.
 
-- Брендинг для браузера и мессенджеров (`src/lib/brandMeta.ts`, файлы в `public/`): `favicon.ico`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` (зелёный `accent` фон, буква «У» Manrope и линия хребта), `site.webmanifest`, превью `og-uk.png` / `og-ru.png` (1200×630: знак, H1, подзаголовок, 2 факта и фото хиро). Подключены в `generateMetadata` обеих страниц (иконки, `openGraph.images`, `twitter: summary_large_image`) и `viewport.themeColor`. При смене текстов или фото превью нужно перерисовать вручную.
+- Брендинг для браузера и мессенджеров (`src/lib/brandMeta.ts`, файлы в `public/`): `favicon.ico`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` (зелёный `accent` фон, белые горы со снежной шапкой и линия хребта из логотипа), `site.webmanifest`, `icon.svg`, превью `og-uk.jpg` / `og-ru.jpg` (1200×630: зелёная панель `accent` со знаком, H1, линией хребта, подзаголовком и 3 фактами, справа фото хиро, плашка домена). Подключены в `generateMetadata` обеих страниц (иконки, `openGraph.images`, `twitter: summary_large_image`) и `viewport.themeColor`. При смене текстов или фото превью нужно перерисовать вручную.
 
 ## Источники правды (легко править в одном месте)
 - `src/content/hotel.ts`:

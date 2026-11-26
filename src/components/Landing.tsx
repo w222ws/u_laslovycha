@@ -19,7 +19,7 @@ export function Landing({ locale }: { locale: Locale }) {
     description: meta.description,
     url: pageUrl,
     // Картинки для превью в выдаче Google: баннер 1200×630, фото дома и квадратный логотип.
-    image: [`${SITE_URL}/og-${locale}.png`, `${SITE_URL}${hotel.heroPhoto}`],
+    image: [`${SITE_URL}/og-${locale}.jpg`, `${SITE_URL}${hotel.heroPhoto}`],
     logo: `${SITE_URL}/icon-512.png`,
     telephone: hotel.contacts.phone,
     inLanguage: locale,
