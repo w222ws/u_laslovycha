@@ -119,8 +119,8 @@ export function RoomsTabs({ types, labels }: Props) {
                 aria-labelledby={`rooms-tab-${type.id}`}
                 aria-hidden={!selected}
                 inert={!selected}
-                className={`col-start-1 row-start-1 transition-opacity duration-200 ${
-                  selected ? 'opacity-100' : 'invisible opacity-0'
+                className={`col-start-1 row-start-1 transition-opacity duration-300 ease-out ${
+                  selected ? 'opacity-100' : 'pointer-events-none invisible opacity-0'
                 }`}
               >
                 <RoomPanel type={type} labels={labels} />
