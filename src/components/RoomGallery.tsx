@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, type TouchEvent } from 'react';
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
 import type { Messages } from '@/lib/i18n';
 import { Photo } from './Photo';
@@ -13,42 +13,32 @@ const arrow =
   'absolute top-1/2 z-10 hidden size-10 -translate-y-1/2 place-items-center rounded-full border border-surface/15 bg-ink/70 text-surface backdrop-blur-sm transition-colors duration-hover hover:bg-ink lg:grid';
 
 /**
- * Галерея на 4 кадра. Листание — нативным scroll-snap: палец тянет кадр за собой, инерцию и
- * снэп считает компоновщик браузера, поэтому свайп на телефоне ровный и без JS в кадре.
- * Активный кадр отслеживает IntersectionObserver; миниатюры и стрелки прокручивают трек.
+ * Галерея на 4 кадра: активный кадр мягко проявляется (opacity), остальные скрыты.
+ * Листают миниатюры, стрелки и простой свайп.
  */
 export function RoomGallery({ slots, name, labels }: Props) {
-  const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   // В лайтбоксе листаем только реально существующие кадры.
   const viewable = slots.filter((slot) => slot.available).map((slot) => slot.src);
 
-  // Активный кадр — тот, что занял больше половины трека.
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const index = Number((entry.target as HTMLElement).dataset.index);
-          if (!Number.isNaN(index)) setActive(index);
-        }
-      },
-      { root: track, threshold: 0.6 },
-    );
-    for (const slide of Array.from(track.children)) observer.observe(slide);
-    return () => observer.disconnect();
-  }, [slots.length]);
+  const scrollToSlide = (index: number) => setActive((index + slots.length) % slots.length);
 
-  const scrollToSlide = (index: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const target = (index + slots.length) % slots.length;
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    track.scrollTo({ left: target * track.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+  // Обычный свайп: сдвиг пальца больше порога листает кадр, вертикальный скролл страницы не мешает.
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    if (t) touchStart.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    const t = e.changedTouches[0];
+    if (!start || !t) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) scrollToSlide(active + (dx < 0 ? 1 : -1));
   };
 
   const closeLightbox = () => {
@@ -64,11 +54,19 @@ export function RoomGallery({ slots, name, labels }: Props) {
     <div>
       <div className="relative">
         <div
-          ref={trackRef}
-          className="snap-track flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-2xl bg-paper-deep"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          className="grid overflow-hidden rounded-2xl bg-paper-deep"
         >
           {slots.map((slot, i) => (
-            <div key={slot.src} data-index={i} className="w-full shrink-0 snap-start">
+            <div
+              key={slot.src}
+              aria-hidden={i !== active}
+              inert={i !== active}
+              className={`col-start-1 row-start-1 transition-opacity duration-300 ease-out ${
+                i === active ? 'opacity-100' : 'pointer-events-none opacity-0'
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => {
